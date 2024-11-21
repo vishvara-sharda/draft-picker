@@ -1,0 +1,1095 @@
+useDraftPicker.txt
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  updateTeam1Picks,
+  updateTeam2Picks,
+  updateTeam1Bans,
+  updateTeam2Bans,
+  updateNicknames,
+  updateTeamNames,
+  updateTeamLogos,
+  updateTournamentName,
+  updateTimer,
+  updatePhase,
+  updateTeam1Wins,
+  updateTeam2Wins,
+  updateCurrentStep,
+  loadStoredData,
+} from './draftPickerSlice';
+import { useCallback } from 'react';
+
+export const useDraftPicker = () => {
+  const dispatch = useDispatch();
+  const state = useSelector((state) => state.draftPicker);
+
+  const onUpdateTeam1Picks = useCallback((picks) => {
+    dispatch(updateTeam1Picks(picks));
+  }, [dispatch]);
+
+  const onUpdateTeam2Picks = useCallback((picks) => {
+    dispatch(updateTeam2Picks(picks));
+  }, [dispatch]);
+
+  const onUpdateTeam1Bans = useCallback((bans) => {
+    dispatch(updateTeam1Bans(bans));
+  }, [dispatch]);
+
+  const onUpdateTeam2Bans = useCallback((bans) => {
+    dispatch(updateTeam2Bans(bans));
+  }, [dispatch]);
+
+  const onUpdateNicknames = useCallback((nicknames) => {
+    dispatch(updateNicknames(nicknames));
+  }, [dispatch]);
+
+  const onUpdateTeamNames = useCallback((names) => {
+    dispatch(updateTeamNames(names));
+  }, [dispatch]);
+
+  const onUpdateTeamLogos = useCallback((logos) => {
+    dispatch(updateTeamLogos(logos));
+  }, [dispatch]);
+
+  const onUpdateTournamentName = useCallback((name) => {
+    dispatch(updateTournamentName(name));
+  }, [dispatch]);
+
+  const onUpdateTimer = useCallback((timer) => {
+    dispatch(updateTimer(timer));
+  }, [dispatch]);
+
+  const onUpdatePhase = useCallback((phase) => {
+    dispatch(updatePhase(phase));
+  }, [dispatch]);
+
+  const onUpdateTeam1Wins = useCallback((wins) => {
+    dispatch(updateTeam1Wins(wins));
+  }, [dispatch]);
+
+  const onUpdateTeam2Wins = useCallback((wins) => {
+    dispatch(updateTeam2Wins(wins));
+  }, [dispatch]);
+
+  const onUpdateCurrentStep = useCallback((step) => {
+    dispatch(updateCurrentStep(step));
+  }, [dispatch]);
+
+  const onLoadStoredData = useCallback((data) => {
+    dispatch(loadStoredData(data));
+  }, [dispatch]);
+
+  return {
+    ...state,
+    onUpdateTeam1Picks,
+    onUpdateTeam2Picks,
+    onUpdateTeam1Bans,
+    onUpdateTeam2Bans,
+    onUpdateNicknames,
+    onUpdateTeamNames,
+    onUpdateTeamLogos,
+    onUpdateTournamentName,
+    onUpdateTimer,
+    onUpdatePhase,
+    onUpdateTeam1Wins,
+    onUpdateTeam2Wins,
+    onUpdateCurrentStep,
+    onLoadStoredData,
+  };
+};
+
+
+draftPickerSlice.js
+import { createSlice } from '@reduxjs/toolkit';
+import { heroes } from './HeroData';
+
+const initialState = {
+  team1Picks: Array(5).fill(null),
+  team2Picks: Array(5).fill(null),
+  team1Bans: Array(5).fill(null),
+  team2Bans: Array(5).fill(null),
+  teamNames: ["Team 1", "Team 2"],
+  teamLogos: ["/placeholder.svg?height=80&width=80", "/placeholder.svg?height=80&width=80"],
+  tournamentName: "",
+  nicknames: Array(10).fill(""),
+  timer: "00:00",
+  phase: "BANNING",
+  currentStep: 0,
+  team1Wins: [false, false, false],
+  team2Wins: [false, false, false],
+};
+
+export const draftPickerSlice = createSlice({
+  name: 'draftPicker',
+  initialState,
+  reducers: {
+    updateTeam1Picks: (state, action) => {
+      state.team1Picks = action.payload;
+    },
+    updateTeam2Picks: (state, action) => {
+      state.team2Picks = action.payload;
+    },
+    updateTeam1Bans: (state, action) => {
+      state.team1Bans = action.payload;
+    },
+    updateTeam2Bans: (state, action) => {
+      state.team2Bans = action.payload;
+    },
+    updateTeamNames: (state, action) => {
+      state.teamNames = action.payload;
+    },
+    updateTeamLogos: (state, action) => {
+      state.teamLogos = action.payload;
+    },
+    updateTournamentName: (state, action) => {
+      state.tournamentName = action.payload;
+    },
+    updateNicknames: (state, action) => {
+      state.nicknames = action.payload;
+    },
+    updateTimer: (state, action) => {
+      state.timer = action.payload;
+    },
+    updatePhase: (state, action) => {
+      state.phase = action.payload;
+    },
+    updateCurrentStep: (state, action) => {
+      state.currentStep = action.payload;
+    },
+    updateTeam1Wins: (state, action) => {
+      state.team1Wins = action.payload;
+    },
+    updateTeam2Wins: (state, action) => {
+      state.team2Wins = action.payload;
+    },
+    loadStoredData: (state, action) => {
+      return { ...state, ...action.payload };
+    },
+    resetAll: (state) => {
+        return initialState;
+    }
+  },
+});
+
+export const {
+  updateTeam1Picks,
+  updateTeam2Picks,
+  updateTeam1Bans,
+  updateTeam2Bans,
+  updateTeamNames,
+  updateTeamLogos,
+  updateTournamentName,
+  updateNicknames,
+  updateTimer,
+  updatePhase,
+  updateCurrentStep,
+  updateTeam1Wins,
+  updateTeam2Wins,
+  loadStoredData,
+    resetAll,
+} = draftPickerSlice.actions;
+
+export default draftPickerSlice.reducer;
+
+
+DraftPickerControlPanel.js
+
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import  heroes  from "../lib/HeroData";
+import {
+  updateTeam1Picks,
+  updateTeam2Picks,
+  updateTeam1Bans,
+  updateTeam2Bans,
+  updateTeamNames,
+  updateTeamLogos,
+  updateTournamentName,
+  updateNicknames,
+  updateTimer,
+  updatePhase,
+  updateCurrentStep,
+  updateTeam1Wins,
+  updateTeam2Wins,
+  resetAll,
+} from "../lib/draftPickerSlice";
+
+
+const actionOrder = [
+  { player: 1, actionType: "ban", index: 0 },
+  { player: 6, actionType: "ban", index: 1 },
+  { player: 2, actionType: "ban", index: 2 },
+  { player: 7, actionType: "ban", index: 3 },
+  { player: 3, actionType: "ban", index: 4 },
+  { player: 8, actionType: "ban", index: 5 },
+  { player: 1, actionType: "pick", index: 6 },
+  [
+    { player: 6, actionType: "pick", index: 7 },
+    { player: 7, actionType: "pick", index: 7 },
+  ],
+  [
+    { player: 2, actionType: "pick", index: 8 },
+    { player: 3, actionType: "pick", index: 8 },
+  ],
+  { player: 8, actionType: "pick", index: 9 },
+  { player: 9, actionType: "ban", index: 10 },
+  { player: 4, actionType: "ban", index: 11 },
+  { player: 10, actionType: "ban", index: 12 },
+  { player: 5, actionType: "ban", index: 13 },
+  { player: 9, actionType: "pick", index: 14 },
+  [
+    { player: 4, actionType: "pick", index: 15 },
+    { player: 5, actionType: "pick", index: 15 },
+  ],
+  { player: 10, actionType: "pick", index: 16 },
+];
+
+export default function DraftPickerControlPanel() {
+  const dispatch = useDispatch();
+  const {
+    team1Picks,
+    team2Picks,
+    team1Bans,
+    team2Bans,
+    teamNames,
+    teamLogos,
+    tournamentName,
+    nicknames,
+    timer,
+    phase,
+    currentStep,
+    team1Wins,
+    team2Wins,
+  } = useSelector((state) => state.draftPicker);
+
+
+  const OpenDraftPick = () => {
+    window.open('/draft-pick', 'Draft Pick', `width=1400, height=900,fullscreen=yes, scrollbars=auto`);
+  };
+
+  const [selections, setSelections] = useState(
+    Array(actionOrder.length).fill(null)
+  );
+  const [tempSelection, setTempSelection] = useState(null);
+  const [secondTempSelection, setSecondTempSelection] = useState(null);
+  const [secondInput, setSecondInput] = useState(false);
+
+  useEffect(() => {
+    if (currentStep < actionOrder.length) {
+      if (isSimultaneousPick()) {
+        setSecondInput(true);
+      } else {
+        setSecondInput(false);
+      }
+    }
+  }, [currentStep]);
+
+  const handleSelection = (heroId) => {
+    setTempSelection(Number(heroId));
+  };
+
+  const handleSelectionSecond = (heroId) => {
+    setSecondTempSelection(Number(heroId));
+  };
+
+  const confirmSelection = () => {
+    const newSelections = [...selections];
+    const newTeam1Picks = [...team1Picks];
+    const newTeam2Picks = [...team2Picks];
+    const newTeam1Bans = [...team1Bans];
+    const newTeam2Bans = [...team2Bans];
+    const currentAction = Array.isArray(actionOrder[currentStep])
+      ? actionOrder[currentStep][0]
+      : actionOrder[currentStep];
+
+    const currentIndex = Array.isArray(actionOrder[currentStep])
+      ? actionOrder[currentStep][0].index
+      : currentAction.index;
+
+    const simultaneousActions = actionOrder.filter((action) =>
+      Array.isArray(action)
+        ? action.some((a) => a.index === currentIndex)
+        : action.index === currentIndex
+    );
+
+    const heroId = tempSelection;
+
+    simultaneousActions.forEach((action) => {
+      if (Array.isArray(action)) {
+        const bothPicks = [tempSelection, secondTempSelection];
+
+        action.forEach((subAction, index) => {
+          const stepIndex = actionOrder.findIndex((a) =>
+            Array.isArray(a)
+              ? a.some(
+                  (sa) =>
+                    sa.player === subAction.player &&
+                    sa.index === subAction.index
+                )
+              : a.player === subAction.player && a.index === subAction.index
+          );
+          newSelections[stepIndex] = heroId;
+          if (subAction.actionType === "pick") {
+            if (subAction.player <= 5) {
+              newTeam1Picks[subAction.player - 1] = bothPicks[index];
+            } else {
+              newTeam2Picks[subAction.player - 6] = bothPicks[index];
+            }
+          } else {
+            if (subAction.player <= 5) {
+              newTeam1Bans[subAction.index % 5] = heroId;
+            } else {
+              newTeam2Bans[subAction.index % 5] = heroId;
+            }
+          }
+        });
+        setSecondInput(false);
+      } else {
+        setSecondInput(false);
+        const stepIndex = actionOrder.findIndex((a) =>
+          Array.isArray(a)
+            ? a.some(
+                (sa) => sa.player === action.player && sa.index === action.index
+              )
+            : a.player === action.player && a.index === action.index
+        );
+        newSelections[stepIndex] = heroId;
+        if (action.actionType === "pick") {
+          if (action.player <= 5) {
+            newTeam1Picks[action.player - 1] = heroId;
+          } else {
+            newTeam2Picks[action.player - 6] = heroId;
+          }
+        } else {
+          if (action.player <= 5) {
+            newTeam1Bans[action.player - 1] = heroId;
+          } else {
+            newTeam2Bans[action.player - 6] = heroId;
+          }
+        }
+      }
+    });
+
+    setSelections(newSelections);
+    setTempSelection(null);
+    dispatch(updateCurrentStep(currentStep + simultaneousActions.length));
+    dispatch(updateTeam1Picks(newTeam1Picks));
+    dispatch(updateTeam2Picks(newTeam2Picks));
+    dispatch(updateTeam1Bans(newTeam1Bans));
+    dispatch(updateTeam2Bans(newTeam2Bans));
+  };
+
+  const isSimultaneousPick = () => {
+    return Array.isArray(actionOrder[currentStep]);
+  };
+
+  const handleTeamNameChange = (index, name) => {
+    const newTeamNames = [...teamNames];
+    newTeamNames[index] = name;
+    dispatch(updateTeamNames(newTeamNames));
+  };
+
+  const handleTeamLogoChange = (index, event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newTeamLogos = [...teamLogos];
+        newTeamLogos[index] = e.target?.result;
+        dispatch(updateTeamLogos(newTeamLogos));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleNicknameChange = (index, name) => {
+    const newNicknames = [...nicknames];
+    newNicknames[index] = name;
+    dispatch(updateNicknames(newNicknames));
+  };
+
+  const resetPicks = () => {
+    dispatch(updateTeam1Picks(Array(5).fill(null)));
+    dispatch(updateTeam2Picks(Array(5).fill(null)));
+  };
+
+  const resetBans = () => {
+    dispatch(updateTeam1Bans(Array(5).fill(null)));
+    dispatch(updateTeam2Bans(Array(5).fill(null)));
+  };
+
+  const resetNicknames = () => dispatch(updateNicknames(Array(10).fill("")));
+
+  const switchNicknames = () => {
+    const newNicknames = [...nicknames.slice(5), ...nicknames.slice(0, 5)];
+    dispatch(updateNicknames(newNicknames));
+  };
+
+  const switchTeams = () => {
+    dispatch(updateTeamNames([teamNames[1], teamNames[0]]));
+    dispatch(updateTeamLogos([teamLogos[1], teamLogos[0]]));
+    dispatch(
+      updateNicknames([...nicknames.slice(5), ...nicknames.slice(0, 5)])
+    );
+  };
+
+  const handleResetAll = () => {
+    dispatch(resetAll());
+    setSelections(Array(actionOrder.length).fill(null));
+  };
+
+  const toggleWin = (team, game) => {
+    if (team === 1) {
+      const newWins = [...team1Wins];
+      newWins[game] = !newWins[game];
+      dispatch(updateTeam1Wins(newWins));
+    } else {
+      const newWins = [...team2Wins];
+      newWins[game] = !newWins[game];
+      dispatch(updateTeam2Wins(newWins));
+    }
+  };
+
+  const getHeroNameById = (id) => {
+    const hero = heroes.find((hero) => hero.id === id);
+    return hero ? hero.name : "Unknown Hero";
+  };
+
+  return (
+    <div className="p-4 space-y-4 relative">
+      <Card>
+      <Button onClick={OpenDraftPick} className="absolute right-6 top-6">Open Draft Pick</Button>
+        <CardHeader>
+          <CardTitle>Tournament Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="tournamentName">Tournament Name</Label>
+              <Input
+                id="tournamentName"
+                value={tournamentName}
+                onChange={(e) => dispatch(updateTournamentName(e.target.value))}
+                placeholder="Enter tournament name"
+              />
+            </div>
+            {[0, 1].map((index) => (
+              <div key={index} className="space-y-2">
+                <Label htmlFor={`team${index + 1}Name`}>
+                  Team {index + 1} Name
+                </Label>
+                <Input
+                  id={`team${index + 1}Name`}
+                  value={teamNames[index]}
+                  onChange={(e) => handleTeamNameChange(index, e.target.value)}
+                  placeholder={`Enter Team ${index + 1} name`}
+                />
+                <Label htmlFor={`team${index + 1}Logo`}>
+                  Team {index + 1} Logo
+                </Label>
+                <Input
+                  id={`team${index + 1}Logo`}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleTeamLogoChange(index, e)}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Draft Picker</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>Current Step: {currentStep + 1}</div>
+            <div>
+              Action: Player{" "}
+              {Array.isArray(actionOrder[currentStep])
+                ? actionOrder[currentStep].map((a) => a.player).join(", ")
+                : actionOrder[currentStep]?.player}{" "}
+              -{" "}
+              {Array.isArray(actionOrder[currentStep])
+                ? actionOrder[currentStep].map((a) => a.actionType).join(", ")
+                : actionOrder[currentStep]?.actionType}
+            </div>
+            <div>Current Phase: {phase}</div>
+            <div>
+              <Label htmlFor="timer">Timer</Label>
+              <Input
+                id="timer"
+                value={timer}
+                onChange={(e) => dispatch(updateTimer(e.target.value))}
+                placeholder="00:00"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Select onValueChange={handleSelection}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a hero" />
+                </SelectTrigger>
+                <SelectContent>
+                  {heroes.map((hero) => (
+                    <SelectItem key={hero.id} value={hero.id.toString()}>
+                      {hero.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {secondInput && (
+                <Select onValueChange={handleSelectionSecond}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select 2nd hero" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {heroes.map((hero) => (
+                      <SelectItem key={hero.id} value={hero.id.toString()}>
+                        {hero.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button
+                disabled={!tempSelection}
+                onClick={confirmSelection}
+                className="mt-2"
+              >
+                Confirm Selection
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={resetPicks}>Reset Picks</Button>
+              <Button onClick={resetBans}>Reset Bans</Button>
+              <Button onClick={resetNicknames}>Reset Nicknames</Button>
+              <Button onClick={switchNicknames}>Switch Nicknames</Button>
+              <Button onClick={switchTeams}>Switch Teams</Button>
+              <Button onClick={handleResetAll}>Reset All</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4 mt-4">
+            {actionOrder.flat().map((action, index) => (
+              <div key={index} className="p-2 border rounded">
+                <div>
+                  {action.actionType.toUpperCase()} - Player {action.player}
+                </div>
+                <div>
+                  {selections[index] !== null ? (
+                    <div>{getHeroNameById(selections[index])}</div>
+                  ) : (
+                    <div>Empty</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Win Tracker</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between">
+            <div>
+              <h3>{teamNames[0]}</h3>
+              <div className="flex gap-2 mt-2">
+                {team1Wins?.map((win, index) => (
+                  <Button
+                    key={index}
+                    variant={win ? "default" : "outline"}
+                    onClick={() => toggleWin(1, index)}
+                  >
+                    Game {index + 1}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3>{teamNames[1]}</h3>
+              <div className="flex gap-2 mt-2">
+                {team2Wins.map((win, index) => (
+                  <Button
+                    key={index}
+                    variant={win ? "default" : "outline"}
+                    onClick={() => toggleWin(2, index)}
+                  >
+                    Game {index + 1}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Player Nicknames</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3>{teamNames[0]}</h3>
+              {nicknames.slice(0, 5).map((nickname, index) => (
+                <Input
+                  key={index}
+                  value={nickname}
+                  onChange={(e) => handleNicknameChange(index, e.target.value)}
+                  placeholder={`Player ${index + 1} Nickname`}
+                  className="mt-1"
+                />
+              ))}
+            </div>
+            <div>
+              <h3>{teamNames[1]}</h3>
+              {nicknames.slice(5).map((nickname, index) => (
+                <Input
+                  key={index + 5}
+                  value={nickname}
+                  onChange={(e) =>
+                    handleNicknameChange(index + 5, e.target.value)
+                  }
+                  placeholder={`Player ${index + 6} Nickname`}
+                  className="mt-1"
+                />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+
+DraftPickerV3.js
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Rnd } from "react-rnd";
+import { Check, CrossIcon } from 'lucide-react';
+import { useDraftPicker } from "../lib/useDraftPicker";
+import { HeroCard } from "./HeroCard";
+import  heroes  from "../lib/HeroData";
+import { Button } from "./ui/button";
+import { cn } from "../lib/utils";
+
+
+const actionOrder= [
+    { player: 1, actionType: "ban", index: 0 },
+    { player: 6, actionType: "ban", index: 1 },
+    { player: 2, actionType: "ban", index: 2 },
+    { player: 7, actionType: "ban", index: 3 },
+    { player: 3, actionType: "ban", index: 4 },
+    { player: 8, actionType: "ban", index: 5 },
+    { player: 1, actionType: "pick", index: 6 },
+    [{ player: 6, actionType: "pick", index: 7 }, { player: 7, actionType: "pick", index: 7 }],
+    [{ player: 2, actionType: "pick", index: 8 }, { player: 3, actionType: "pick", index: 8 }],
+    { player: 8, actionType: "pick", index: 9 },
+    { player: 9, actionType: "ban", index: 10 },
+    { player: 4, actionType: "ban", index: 11 },
+    { player: 10, actionType: "ban", index: 12 },
+    { player: 5, actionType: "ban", index: 13 },
+    { player: 9, actionType: "pick", index: 14 },
+    [{ player: 4, actionType: "pick", index: 15 }, { player: 5, actionType: "pick", index: 15 }],
+    { player: 10, actionType: "pick", index: 16 }
+  ]
+
+
+export default function DraftPickerV3() {
+  const {
+    team1Picks,
+    team2Picks,
+    team1Bans,
+    team2Bans,
+    nicknames,
+    teamNames,
+    teamLogos,
+    tournamentName,
+    timer,
+    phase,
+    team1Wins,
+    team2Wins,
+    currentStep,
+    onUpdateTeam1Picks,
+    onUpdateTeam2Picks,
+    onUpdateTeam1Bans,
+    onUpdateTeam2Bans,
+    onUpdateNicknames,
+    onUpdateTeamNames,
+    onUpdateTeamLogos,
+    onUpdateTournamentName,
+    onUpdateTimer,
+    onUpdatePhase,
+    onUpdateTeam1Wins,
+    onUpdateTeam2Wins,
+    onUpdateCurrentStep,
+    onLoadStoredData,
+  } = useDraftPicker();
+
+  // ... (keep all the useState hooks and other logic as they were)
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedData = JSON.parse(localStorage.getItem("draftPickerData") || "{}");
+      onLoadStoredData(storedData);
+      setCurrentAction(actionOrder[storedData.currentStep || 0]);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    handleStorageChange(); // Initial load
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [onLoadStoredData]);
+
+    
+  const [componentPositions, setComponentPositions] = useState({});
+  const [isEditorMode, setIsEditorMode] = useState(true);
+  const [closeSidebar, setCloseSidebar] = useState(false);
+  const [components, setComponents] = useState([]);
+  const [currentAction, setCurrentAction] = useState(actionOrder[0]);
+  
+  const videoRef = useRef(null);
+
+  const getHeroImageByID = (id) => {
+    const hero = heroes.find((h) => h.id === id);
+    return hero ? hero.img : "/placeholder.svg";
+  };
+  
+  const getHeroNameByID = (id) => {
+    const hero = heroes.find((h) => h.id === id);
+    return hero ? hero.name : "Unknown Hero";
+  };
+  
+  const updateComponentPosition = (key, position) => {
+    setComponentPositions((prev) => ({ ...prev, [key]: position }));
+  };
+  
+  const resetPositions = () => {
+    setComponentPositions({});
+    setComponents([]);
+  };
+  
+  const addComponent = (type) => {
+    const id = `${type}-${Date.now()}`;
+    const defaultPosition = { x: 400, y: 120, width: 600, height: 250 };
+  
+    const componentCount = components.filter((component) => component.type === type).length;
+  
+    if (
+      (type === "picks" && componentCount >= 1) ||
+      (type === "picks2" && componentCount >= 1) ||
+      (type === "bans1" && componentCount >= 1) ||
+      (type === "bans2" && componentCount >= 1) ||
+      (type === "team1Name" && componentCount >= 1) ||
+      (type === "team1Logo" && componentCount >= 1) ||
+      (type === "team2Name" && componentCount >= 1) ||
+      (type === "team2Logo" && componentCount >= 1) ||
+      (type === "tournamentLogo" && componentCount >= 1) ||
+      (type === "timer" && componentCount >= 1) ||
+      (type === "footer" && componentCount >= 1)
+    ) {
+      alert(`You reached the limit for ${type} component.`);
+      return;
+    }
+  
+    setComponents((prev) => [...prev, { id, type, defaultPosition }]);
+  };
+
+
+
+  const RndWrapper = ({ children, defaultPosition, id }) => (
+    <Rnd
+      size={{
+        width: componentPositions[id]?.width || defaultPosition.width,
+        height: componentPositions[id]?.height || defaultPosition.height,
+      }}
+      position={{
+        x: componentPositions[id]?.x || defaultPosition.x,
+        y: componentPositions[id]?.y || defaultPosition.y,
+      }}
+      onDragStop={(e, d) => {
+        updateComponentPosition(id, {
+          x: d.x,
+          y: d.y,
+          width: componentPositions[id]?.width || defaultPosition.width,
+          height: componentPositions[id]?.height || defaultPosition.height,
+        });
+      }}
+      onResizeStop={(e, direction, ref, delta, position) =>
+        updateComponentPosition(id, {
+          width: ref.offsetWidth,
+          height: ref.offsetHeight,
+          x: position.x,
+          y: position.y,
+        })
+      }
+      enableUserSelectHack={true}
+      enableResizing={isEditorMode}
+      dragHandleClassName="drag-handle"
+      dragAxis="both"
+      disableDragging={!isEditorMode}
+      className="z-50"
+    >
+      {children}
+    </Rnd>
+  );
+
+
+  const isActiveAction = (index, type, isTeam1) => {
+    if (Array.isArray(currentAction)) {
+      return currentAction.some(action => 
+        action.actionType === type && 
+        ((isTeam1 && action.player <= 5) || (!isTeam1 && action.player > 5)) &&
+        (type === "pick" ? (isTeam1 ? action.player - 1 : action.player - 6) : (isTeam1 ? action.player - 1 : action.player - 6)) === index
+      )
+    } else {
+      return currentAction.actionType === type && 
+        ((isTeam1 && currentAction.player <= 5) || (!isTeam1 && currentAction.player > 5)) &&
+        (type === "pick" ? (isTeam1 ? currentAction.player - 1 : currentAction.player - 6) : (isTeam1 ? currentAction.player - 1 : currentAction.player - 6)) === index
+    }
+  }
+
+
+  const renderComponent = (component) => {
+    switch (component.type) {
+      case "team1Name":
+      case "team2Name":
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="relative px-8 py-2 text-4xl font-bold text-yellow-100 h-full flex items-center drag-handle">
+              {teamNames[component.type === "team1Name" ? 0 : 1]}
+            </div>
+          </RndWrapper>
+        );
+      case "team1Logo":
+      case "team2Logo":
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="relative w-full h-full drag-handle">
+              <div className="absolute inset-0 border-2 border-yellow-400 bg-gradient-to-br from-yellow-400/20 to-yellow-600/20" />
+              <img
+                src={teamLogos[component.type === "team1Logo" ? 0 : 1] || "/placeholder.svg"}
+                alt={`Team ${component.type === "team1Logo" ? 1 : 2} logo`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+                draggable={false}
+              />
+            </div>
+          </RndWrapper>
+        );
+      case "picks":
+      case "picks2":
+        const picks = component.type === "picks" ? team1Picks : team2Picks;
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="flex space-x-[0.3vw] h-full drag-handle transition-all duration-300">
+              {picks.map((hero, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: hero ? 1 : 0, y: hero ? 0 : 20 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full h-full relative flex-grow"
+                >
+                  <HeroCard
+                    hero={hero}
+                    index={index}
+                    animate={isActiveAction(index, "pick", component.type === "picks")}
+                  />
+                  <div className="absolute bottom-0 left-0 px-1 opacity-70 w-full bg-black/70 text-white text-center z-50">
+                    {nicknames[component.type === "picks" ? index : index + 5]}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </RndWrapper>
+        );
+      case "bans1":
+      case "bans2":
+        const bans = component.type === "bans1" ? team1Bans : team2Bans;
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="flex justify-between space-x-[0.52vw] h-full drag-handle">
+              {bans.map((heroId, index) => (
+                <motion.div
+                  key={index}
+                  className={cn(
+                    "relative overflow-hidden rounded flex-grow",
+                    "bg-gradient-to-b from-zinc-800/90 to-zinc-900/90",
+                    "border border-red-900/50"
+                  )}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {heroId === null && isActiveAction(index, "ban", component.type === "bans1") && (
+                    <img
+                      src="/Ban__Animation_VP9.gif"
+                      alt="Ban Animation"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                      draggable={false}
+                      className="z-10"
+                    />
+                  )}
+                  {heroId !== null && (
+                    <img
+                      src={getHeroImageByID(heroId)}
+                      alt={getHeroNameByID(heroId)}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                      className="grayscale z-10"
+                      draggable={false}
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-red-900/30" />
+                </motion.div>
+              ))}
+            </div>
+          </RndWrapper>
+        );
+      case "timer":
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white bg-black/50 rounded-full border border-yellow-400/50 drag-handle">
+              {timer}
+            </div>
+          </RndWrapper>
+        );
+      case "footer":
+        return (
+          <RndWrapper key={component.id} id={component.id} defaultPosition={component.defaultPosition}>
+            <div className="relative h-full drag-handle">
+              <div className="absolute inset-0" />
+              <div className="relative flex items-center justify-between px-8 h-full">
+                <div className="text-lg text-yellow-900 font-bold">{tournamentName}</div>
+                <div className="text-2xl font-bold text-white text-center">{phase}</div>
+                <div className="text-lg text-yellow-900 font-bold">BRACKET - LAN QUALIFIER ONLINE P1</div>
+              </div>
+            </div>
+          </RndWrapper>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // ... (keep all other helper functions as they were)
+
+  const Sidebar = () => (
+    <div className={`fixed top-0 left-0 w-64 ${closeSidebar ? "h-12" : "h-full"}  bg-gray-800 text-white p-4 z-30 transition-all duration-200`}>
+      <CrossIcon
+        className="absolute top-4 right-4 cursor-pointer"
+        onClick={() => setCloseSidebar(!closeSidebar)}
+      />
+      <h2 className="text-xl font-bold mb-4">Sidebar</h2>
+      {!closeSidebar && (
+        <div className="space-y-4">
+          {["team1Name", "team1Logo", "team2Name", "team2Logo", "tournamentLogo", "picks", "picks2", "timer", "bans1", "bans2", "footer"].map((type) => (
+            <button
+              key={type}
+              onClick={() => addComponent(type)}
+              className="w-full bg-blue-500 py-2 rounded"
+            >
+              Add {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const WinChecker = () => (
+    <div className="fixed top-4 right-4 flex gap-8 z-30 bg-black/50 p-4 rounded-lg">
+      {[team1Wins, team2Wins].map((wins, teamIndex) => (
+        <div key={teamIndex} className="flex flex-col items-center">
+          <h3 className="text-white mb-2">{teamNames[teamIndex]}</h3>
+          <div className="flex gap-2">
+            {wins.map((win, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "w-8 h-8 rounded flex items-center justify-center",
+                  win ? "bg-green-500" : "bg-gray-700"
+                )}
+              >
+                {win && <Check className="text-white" size={16} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="relative w-full min-h-screen overflow-hidden">
+      <div className="absolute bg-green-500 w-screen h-screen -z-20" />
+      {isEditorMode && <Sidebar />}
+      <WinChecker />
+      
+      <video
+        autoPlay
+        loop
+        muted
+        className="absolute inset-0 object-cover w-full h-full -z-10"
+      >
+        <source src="/Assets/Main Ban Pick Shell_VP9.webm" type="video/webm" />
+      </video>
+
+      <video
+        autoPlay
+        loop
+        muted
+        className="absolute inset-0 object-cover w-full h-full z-10"
+        ref={videoRef}
+      >
+        <source src="/Assets/Swiss Bracket Lower_VP9.webm" type="video/webm" />
+      </video>
+
+      <div className="relative z-20 w-full h-full flex flex-col">
+        {components.map(renderComponent)}
+      </div>
+
+      <div className="fixed bottom-4 right-4 flex gap-2 z-30">
+        <Button
+          onClick={resetPositions}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Reset Positions
+        </Button>
+        <Button
+          onClick={() => setIsEditorMode(!isEditorMode)}
+          className="bg-green-500 text-white px-4 py-2 rounded-md"
+        >
+          {isEditorMode ? "Switch to Preview Mode" : "Switch to Editor Mode"}
+        </Button>
+      </div>
+    </div>
+  );
+}  
